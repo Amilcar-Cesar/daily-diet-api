@@ -1,6 +1,12 @@
-from flask import Flask,jsonify
-
+from flask import Flask, jsonify
+from database import db
+from models.models import User
 app = Flask(__name__)
+
+app.config['SECRET_KEY'] = "your_secret_key"
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://admin:12345@127.0.0.1:3306/Diet_db'
+
+db.init_app(app)
 
 @app.route('/refeição', methods=['POST'])
 def refeicao():

@@ -11,13 +11,14 @@ services:
       MYSQL_USER: 'admin'                 # Cria um usuário para a nossa aplicação
       MYSQL_PASSWORD: '12345'            # Define a senha para este usuário
       
-    # Mapeia a porta do contêiner para a porta da nossa máquina (host)
-    # Formato: "porta_no_host:porta_no_conteiner"
-    # Isso permite que nossa aplicação se conecte a 'localhost:3306'
+    
     ports:
       - "3306:3306"
       
     # Define os volumes para persistir os dados
     volumes:
-      # Mapeia um volume nomeado 'db_data' para a pasta onde o MySQL armazena os dados
-      - C:\Users\USER\Desktop\backup\projeto py\Flask\daily-diet-api/mysql:/var/lib/mysql
+      - db_data:/var/lib/mysql
+
+
+volumes:
+  db_data:

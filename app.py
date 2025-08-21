@@ -1,6 +1,8 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from database import db
-from models.models import User
+from models.models import Refeicao
+import datetime
+
 app = Flask(__name__)
 
 app.config['SECRET_KEY'] = "your_secret_key"
@@ -10,13 +12,26 @@ db.init_app(app)
 
 @app.route('/refeição', methods=['POST'])
 def refeicao():
-    refeicao = { 
-        "Nome": "Nome de exemplo",
-        "Descricao": "Descricao de exemplo",
-        "Data": "data exemplo",
-        "In diet": "sim/nao"
-    }
-    return jsonify(refeicao)
+    data = request.json
+    nome = data.get('nome')
+    descricao = data.get('descricao')
+    dataHora = datetime.datetime.now()
+
+    if nome and descricao:
+        refeicao = Refeicao(nome=nome, descricao=descricao, dataHora=dataHora)
+        db.session.add(refeicao)
+        db.session.commit()
+
+    return jsonify({"message": "Refeição cadastrada com sucesso!"})
+
+@app.route('/refeição/<int:id_ref>', methods=['GET'])
+def read_refeicao(id_ref):
+    
+    refeicao = Refeicao.query.get(id_ref)
+
+    if refeicao:
+        return jsonify(refeicao.to_dict())
+    return jsonify({'message': 'Objeto não encontrado'}), 404
 
 
 

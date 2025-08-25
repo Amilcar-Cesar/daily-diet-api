@@ -7,6 +7,7 @@ class Refeicao(db.Model):
     descricao = db.Column(db.Text(), nullable=False)
     dataHora = db.Column(db.DateTime, nullable=False)
     naDieta = db.Column(db.String(30),nullable=True, default='sim')
+    usuario_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
 
     def to_dict(self):
         return {
@@ -22,3 +23,4 @@ class Usuario(db.Model, UserMixin):
     username = db.Column(db.String(80), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)
     role = db.Column(db.String(50), nullable=False, default='user')
+    refeicoes = db.relationship('Refeicao', backref='autor', lazy=True)

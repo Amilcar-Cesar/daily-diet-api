@@ -112,7 +112,7 @@ def create_refeicao():
     naDieta= data.get('naDieta')
 
     if nome and descricao:
-        refeicao = Refeicao(nome=nome, descricao=descricao, dataHora=dataHora, naDieta=naDieta)
+        refeicao = Refeicao(nome=nome, descricao=descricao, dataHora=dataHora, naDieta=naDieta, autor=current_user)
         db.session.add(refeicao)
         db.session.commit()
         return jsonify({"message": "Refeição cadastrada com sucesso!"})
@@ -124,6 +124,9 @@ def create_refeicao():
 def read_refeicao(id_ref):
     
     refeicao = Refeicao.query.get(id_ref)
+    
+    if refeicao.autor.id != current_user.id:
+        return jsonify({"message": "Ação não permitida."}), 403
 
     if refeicao:
         return jsonify(refeicao.to_dict())
@@ -134,8 +137,8 @@ def read_refeicao(id_ref):
 @app.route('/refeição/lista', methods=['GET'])
 def lista_refeicao():
 
-    refeicoes = Refeicao.query.all()
-    return jsonify([refeicao.to_dict() for refeicao in refeicoes])
+    refeicoes_do_usuario = current_user.refeicoes
+    return jsonify([refeicao.to_dict() for refeicao in refeicoes_do_usuario])
 
 
 @login_required
@@ -145,14 +148,24 @@ def update_refeicao(id_ref):
     data = request.json
     refeicao = Refeicao.query.get(id_ref)
     
-    if refeicao:
-        refeicao.nome = data.get("nome")
-        refeicao.descricao = data.get("descricao")
-        refeicao.naDieta = data.get("naDieta")
-        db.session.add(refeicao)
-        db.session.commit()
-        return jsonify({"message": "Refeição atualizada com sucesso!"})
-    return jsonify({"message": "Erro ao atualizar dados."}), 500
+    if not refeicao:
+        return jsonify({'message': 'Refeição não encontrada'}), 404
+    
+    if refeicao.autor.id != current_user.id:
+        return jsonify({"message": "Ação não permitida."}), 403
+    
+    if 'nome' in data:
+        refeicao.nome = data['nome']
+    if 'descricao' in data:
+        refeicao.descricao = data['descricao']
+    if 'naDieta' in data:
+        refeicao.naDieta = data['naDieta']
+    
+    
+    refeicao.dataHora = datetime.datetime.now()
+    db.session.commit()
+    return jsonify({"message": "Refeição atualizada com sucesso!"})
+    
 
 
 @login_required
@@ -160,6 +173,9 @@ def update_refeicao(id_ref):
 def delete_refeicao(id_ref):
     
     refeicao = Refeicao.query.get(id_ref)
+
+    if refeicao.autor.id != current_user.id:
+        return jsonify({"message": "Ação não permitida."}), 403
 
     if refeicao:
         db.session.delete(refeicao)
